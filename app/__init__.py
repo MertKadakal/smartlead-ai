@@ -2,7 +2,7 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import config
-from database import init_db
+from app.database import init_db
 
 
 def create_app(config_name=None):
