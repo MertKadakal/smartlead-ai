@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request
-from services.ai_service import AIServiceError, ai_service
-import database
+from app.services.ai_service import AIServiceError, ai_service
+from app import database
 
 # 1. Blueprint Tanımlamaları
 views_bp = Blueprint("views", __name__)
