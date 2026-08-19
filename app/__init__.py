@@ -24,7 +24,7 @@ def create_app(config_name=None):
         init_db(app)
 
     # 4. Blueprint'leri Kaydet
-    from routes import api_bp, views_bp
+    from app.routes import api_bp, views_bp
 
     app.register_blueprint(views_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
