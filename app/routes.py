@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, render_template, request
-from ai_service import AIServiceError, ai_service
+from services.ai_service import AIServiceError, ai_service
 import database
 
 # 1. Blueprint Tanımlamaları
