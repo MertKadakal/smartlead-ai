@@ -27,22 +27,19 @@ class AIService:
 
     def yanit_uret(self, mesaj: str, gecmis: list = None) -> str:
         """Kullanıcı mesajını ve geçmişi alıp yapay zekâ yanıtını döndürür."""
-        # API anahtarı girilmemişse sistemi çökertmek yerine demo modu yanıtı döndür
         if not self.api_key or self.api_key.strip() == "":
-            return (
-                "[Demo Modu]: GROQ_API_KEY tanımlanmamış. "
-                f"Mesajınız alındı: '{mesaj}'"
-            )
+            return f"[Demo Modu]: GROQ_API_KEY tanımlanmamış. Mesajınız: '{mesaj}'"
 
         if gecmis is None:
             gecmis = []
 
-        # Mesaj listesi oluşturma: 1. Sistem Promptu -> 2. Geçmiş -> 3. Yeni Mesaj
-        messages = [{"role": "system", "content": self._get_system_prompt()}]
+        # 1. GEÇMİŞİ SINIRLA: Token patlamasını önlemek için sadece son 6 mesajı (3 tur soru-cevap) al
+        gecmis = gecmis[-6:]
 
+        # Mesaj listesi oluşturma
+        messages = [{"role": "system", "content": self._get_system_prompt()}]
         for item in gecmis:
             messages.append(item)
-
         messages.append({"role": "user", "content": mesaj})
 
         headers = {
@@ -50,13 +47,12 @@ class AIService:
             "Content-Type": "application/json",
         }
 
+        # 2. TOKEN LİMİTİNİ YÜKSELT: Model düşünceyi bitirip asıl cevaba geçebilsin
         payload = {
             "model": self.model,
             "messages": messages,
-            "temperature": 0.7,
-            "max_tokens": 500,  # 300 çok dar olduğu için düşünce bloğu bitmeden token tükenebilir, artırmak güvenlidir
-            # Groq'ta reasoning/düşünme özelliğini doğrudan kapatmak veya gizlemek için:
-            "reasoning_format": "hidden",  # Modeline göre reasoning alanını gizler/kapatır
+            "temperature": 0.6,
+            "max_tokens": 1024,  # 300 yerine 1024
         }
 
         try:
@@ -70,28 +66,37 @@ class AIService:
                 )
 
             data = response.json()
-            ham_yanit = data["choices"][0]["message"]["content"]
+            choice = data["choices"][0]
+            ham_yanit = choice["message"].get("content") or ""
+            finish_reason = choice.get("finish_reason")
 
-            # 1. Kapanmış <think>...</think> bloklarını temizle
+            # 3. DÜŞÜNCE ETİKETLERİNİ TEMİZLE
+            # Önce kapanmış <think>...</think> bloklarını temizle
             temiz_yanit = re.sub(
                 r"<think>.*?</think>", "", ham_yanit, flags=re.DOTALL
-            )
-
-            # 2. Token sınırından dolayı KAPANMAMIŞ <think>... bloğu kaldıysa onu da temizle
-            temiz_yanit = re.sub(
-                r"<think>.*", "", temiz_yanit, flags=re.DOTALL
             ).strip()
+
+            # Eğer kapanış etiketi yoksa ve sadece düşünce kaldıysa temizle
+            if "<think>" in temiz_yanit:
+                temiz_yanit = re.sub(
+                    r"<think>.*", "", temiz_yanit, flags=re.DOTALL
+                ).strip()
+
+            # 4. EMNİYET KİLİDİ: Eğer regex sonrası metin boş kaldıysa
+            if not temiz_yanit:
+                if finish_reason == "length":
+                    return "Yanıt üretilirken uzunluk sınırına ulaşıldı. Lütfen sorunuzu daha kısa veya spesifik sorabilir misiniz?"
+                # Model boş döndüyse ham yanıttan etiketleri ayıklayıp son çare olarak döndür
+                temiz_yanit = ham_yanit.replace("<think>", "").replace("</think>", "").strip()
+                if not temiz_yanit:
+                    return "Üzgünüm, şu anda yanıt oluşturamadım. Lütfen tekrar dener misiniz?"
 
             return temiz_yanit
 
         except requests.exceptions.RequestException as e:
-            raise AIServiceError(
-                f"Servis bağlantı hatası oluştu: {str(e)}"
-            ) from e
+            raise AIServiceError(f"Servis bağlantı hatası: {str(e)}") from e
         except (KeyError, IndexError) as e:
-            raise AIServiceError(
-                f"API yanıtı beklenen formatta değil: {str(e)}"
-            ) from e
+            raise AIServiceError(f"API yanıt formatı geçersiz: {str(e)}") from e
 
 
 # Singleton servis örneği
