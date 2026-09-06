@@ -55,6 +55,7 @@ class AIService:
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 300,
+            "reasoning_format": "hidden",
         }
 
         try:
