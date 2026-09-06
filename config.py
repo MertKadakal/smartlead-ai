@@ -19,7 +19,7 @@ class Config:
     # Yapay zekanın sistem istemi / kişiliği
     BUSINESS_CONTEXT = os.environ.get(
         "BUSINESS_CONTEXT",
-        "Sen [İşletmenizin Adı] müşteri destek asistanısın. Müşterilere nazik, çözüm odaklı ve profesyonel bir dille yardımcı olursun.",
+        "Sen Patikadakal müşteri destek asistanısın. Müşterilere nazik, çözüm odaklı ve profesyonel bir dille yardımcı olursun.",
     )
 
     # CORS ayarları (virgülle ayrılmış string'i listeye çevirir)
