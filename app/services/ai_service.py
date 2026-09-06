@@ -54,8 +54,9 @@ class AIService:
             "model": self.model,
             "messages": messages,
             "temperature": 0.7,
-            "max_tokens": 300,
-            "reasoning_format": "hidden",
+            "max_tokens": 500,  # 300 çok dar olduğu için düşünce bloğu bitmeden token tükenebilir, artırmak güvenlidir
+            # Groq'ta reasoning/düşünme özelliğini doğrudan kapatmak veya gizlemek için:
+            "reasoning_format": "hidden",  # Modeline göre reasoning alanını gizler/kapatır
         }
 
         try:
@@ -70,7 +71,17 @@ class AIService:
 
             data = response.json()
             ham_yanit = data["choices"][0]["message"]["content"]
-            temiz_yanit = re.sub(r"<think>.*?</think>", "", ham_yanit, flags=re.DOTALL).strip()
+
+            # 1. Kapanmış <think>...</think> bloklarını temizle
+            temiz_yanit = re.sub(
+                r"<think>.*?</think>", "", ham_yanit, flags=re.DOTALL
+            )
+
+            # 2. Token sınırından dolayı KAPANMAMIŞ <think>... bloğu kaldıysa onu da temizle
+            temiz_yanit = re.sub(
+                r"<think>.*", "", temiz_yanit, flags=re.DOTALL
+            ).strip()
+
             return temiz_yanit
 
         except requests.exceptions.RequestException as e:
