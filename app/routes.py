@@ -1,10 +1,13 @@
+import os
 from flask import Blueprint, jsonify, render_template, request
 from app.services.ai_service import AIServiceError, ai_service
 from app import database
 
-# 1. Blueprint Tanımlamaları
 views_bp = Blueprint("views", __name__)
-api_bp = Blueprint("api", __name__, url_prefix="/api")
+api_bp = Blueprint("api", __name__)
+
+# Render Environment kısmına ekleyeceğiniz gizli anahtar
+API_SECRET_KEY = os.environ.get("SECRET_KEY", "super-gizli-anahtar-123")
 
 
 # ==========================================
@@ -67,7 +70,6 @@ def lead_kaydet():
     telefon = data.get("telefon")
     mesaj = data.get("mesaj")
 
-    # İsim ve telefon zorunlu alanlardır
     if not isim or not telefon:
         return (
             jsonify(
@@ -79,28 +81,47 @@ def lead_kaydet():
             400,
         )
 
-    lead_id = database.lead_ekle(isim=isim, telefon=telefon, mesaj=mesaj)
-
-    return (
-        jsonify(
-            {
-                "basari": True,
-                "mesaj": "Müşteri adayı başarıyla kaydedildi.",
-                "lead_id": lead_id,
-            }
-        ),
-        201,
-    )
+    try:
+        lead_id = database.lead_ekle(isim=isim, telefon=telefon, mesaj=mesaj)
+        return (
+            jsonify(
+                {
+                    "basari": True,
+                    "mesaj": "Müşteri adayı başarıyla kaydedildi.",
+                    "lead_id": lead_id,
+                }
+            ),
+            201,
+        )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "basari": False,
+                    "hata": f"Kayıt eklenirken hata oluştu: {str(e)}",
+                }
+            ),
+            500,
+        )
 
 
 @api_bp.route("/leads", methods=["GET"])
 def lead_listele():
-    """Tüm lead kayıtlarını listeler."""
-    try:
-        satirlar = database.tum_leadler()
-        leadler = [dict(satir) for satir in satirlar]
+    """Tüm lead kayıtlarını listeler (Wix paneli ve /dashboard için)."""
+    api_key = request.headers.get("x-api-key")
+    istemci_kaynak = request.headers.get("Referer", "")
 
-        return jsonify({"basari": True, "leadler": leadler}), 200
+    # Kendi /dashboard sayfanız haricindeki isteklerde API Key kontrolü
+    dashboard_istegi = "/dashboard" in istemci_kaynak
+    if not dashboard_istegi and api_key != API_SECRET_KEY:
+        return (
+            jsonify({"basari": False, "hata": "Yetkisiz erişim: Geçersiz API anahtarı."}),
+            401,
+        )
+
+    try:
+        leadler = database.tum_leadler()
+        return jsonify({"basari": True, "leadler": leadler, "data": leadler}), 200
     except Exception as e:
         return (
             jsonify(
