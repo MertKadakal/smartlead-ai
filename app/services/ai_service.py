@@ -20,7 +20,7 @@ class AIService:
         # Öncelik ortam değişkeninde olsun
         self.api_key = os.environ.get("GROQ_API_KEY") or getattr(active_config, "GROQ_API_KEY", "")
         self.api_url = "https://api.groq.com/openai/v1/chat/completions"
-        self.model = "llama-3.3-70b-versatile"
+        self.model = "openai/gpt-oss-20b"
         self.config = active_config
 
     def _get_system_prompt(self) -> str:
