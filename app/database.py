@@ -103,3 +103,20 @@ def tum_leadler():
         kayitlar.append(kayit)
 
     return kayitlar
+
+def lead_sil(lead_id):
+    """Belirtilen ID'ye sahip lead kaydını siler.
+    Kayıt silindiyse True, bulunamadıysa False döner."""
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        """
+        DELETE FROM leads
+        WHERE id = %s;
+        """,
+        (lead_id,),
+    )
+    etkilenen_satir = cursor.rowcount
+    db.commit()
+    cursor.close()
+    return etkilenen_satir > 0

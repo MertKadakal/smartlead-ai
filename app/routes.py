@@ -132,3 +132,46 @@ def lead_listele():
             ),
             500,
         )
+
+@api_bp.route("/leads/<int:lead_id>", methods=["DELETE"])
+def lead_sil_endpoint(lead_id):
+    """Belirtilen ID'ye sahip lead kaydını siler."""
+    api_key = request.headers.get("x-api-key")
+    istemci_kaynak = request.headers.get("Referer", "")
+
+    # Güvenlik: Dashboard haricindeki Wix gibi dış kaynaklı isteklerde API Key denetimi
+    dashboard_istegi = "/dashboard" in istemci_kaynak
+    if not dashboard_istegi and api_key != API_SECRET_KEY:
+        return (
+            jsonify(
+                {"basari": False, "hata": "Yetkisiz erişim: Geçersiz API anahtarı."}
+            ),
+            401,
+        )
+
+    try:
+        silindi = database.lead_sil(lead_id)
+        if silindi:
+            return (
+                jsonify(
+                    {"basari": True, "mesaj": f"Lead #{lead_id} başarıyla silindi."}
+                ),
+                200,
+            )
+        else:
+            return (
+                jsonify(
+                    {"basari": False, "hata": f"ID'si {lead_id} olan kayıt bulunamadı."}
+                ),
+                404,
+            )
+    except Exception as e:
+        return (
+            jsonify(
+                {
+                    "basari": False,
+                    "hata": f"Kayıt silinirken sunucu hatası oluştu: {str(e)}",
+                }
+            ),
+            500,
+        )
