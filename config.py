@@ -24,7 +24,7 @@ class Config:
 
     # CORS ayarları (virgülle ayrılmış string'i listeye çevirir)
     CORS_ORIGINS = os.environ.get(
-        "CORS_ORIGINS", "http://localhost:3000,http://localhost:5173"
+        "CORS_ORIGINS", "https://mertkadakal1629.wixstudio.com/patikadakal"
     ).split(",")
 
 

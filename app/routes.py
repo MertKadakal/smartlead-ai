@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, jsonify, render_template, request
+from flask import Blueprint, jsonify, request
 from app.services.ai_service import AIServiceError, ai_service
 from app import database
 
@@ -11,20 +11,19 @@ API_SECRET_KEY = os.environ.get("SECRET_KEY", "super-gizli-anahtar-123")
 
 
 # ==========================================
-# SAYFA ROTALARI (views_bp)
+# SAYFA / KÖK ROTALAR (views_bp)
 # ==========================================
 
 
 @views_bp.route("/", methods=["GET"])
 def index():
-    """Karşılama sayfasını gösterir."""
-    return render_template("index.html")
+    """API Servis durum bilgisini döner."""
+    return jsonify({
+        "servis": "SmartLead AI API",
+        "durum": "aktif",
+        "mesaj": "API servisi sorunsuz çalışıyor. Tüm isteklerinizi /api uç noktalarına iletebilirsiniz."
+    }), 200
 
-
-@views_bp.route("/dashboard", methods=["GET"])
-def dashboard():
-    """Yönetim panelini gösterir."""
-    return render_template("dashboard.html")
 
 
 # ==========================================

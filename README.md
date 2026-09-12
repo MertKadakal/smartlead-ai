@@ -8,7 +8,7 @@ SmartLead AI, potansiyel müşteriler (lead) ile etkileşime geçen, soruların�
 
 - **AI Sohbet Servisi (`/api/sohbet`):** Groq API (Qwen 3.6 27B) entegrasyonu ile özelleştirilebilir müşteri destek asistanı.
 - **Lead Yönetimi (`/api/leads`):** Müşteri adayı bilgilerini (isim, telefon, mesaj) veritabanına kaydetme ve listeleme.
-- **Web Arayüzleri:** Karşılama sayfası (`/`) ve yönetim paneli (`/dashboard`).
+- **Wix Integration:** Wix frontend ve Velo/Repeater panelleri ile %100 uyumlu Headless REST API.
 - **Canlılık Kontrolü (`/health`):** Sunucu durum kontrolü (Health check).
 - **Esnek Yapılandırma:** `.env` dosyası üzerinden API anahtarları ve sistem talimatı (*Business Context*) yönetimi.
 
@@ -73,12 +73,12 @@ smartlead_ai/
 ├── app/
 │   ├── services/
 │   │   └── ai_service.py   # Groq AI entegrasyonu ve istem mantığı
-│   ├── templates/          # HTML şablonları
-│   ├── database.py         # SQLite veritabanı yönetimi
-│   ├── routes.py           # API ve Sayfa rotaları (Blueprints)
+│   ├── database.py         # PostgreSQL veritabanı yönetimi
+│   ├── routes.py           # REST API rotaları (Blueprints)
 │   └── __init__.py         # App factory ve CORS ayarları
 ├── config.py               # Yapılandırma sınıfları
 ├── run.py                  # Sunucu başlatıcı
+├── SISTEM_MIMARISI.md      # Sistem mimarisi dokümanı
 ├── requirements.txt        # Python paket bağımlılıkları
 └── .env                    # Ortam değişkenleri
 ```
